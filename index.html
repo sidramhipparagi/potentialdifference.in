@@ -1,38 +1,117 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Website</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Off - Fashion E-commerce</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background-color: #f8f8f8; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        nav ul { list-style: none; padding: 0; display: flex; }
+        nav ul li { margin: 0 10px; }
+        nav ul li a { text-decoration: none; color: #333; }
+        .hero { text-align: center; padding: 50px 20px; background-color: #eee; }
+        .categories { display: flex; justify-content: space-around; padding: 20px; }
+        .category { text-align: center; }
+        .category img { width: 100px; height: 100px; }
+        footer { background-color: #333; color: #fff; padding: 20px; text-align: center; }
+
+        /* Add @font-face for Couture font */
+        @font-face {
+            font-family: 'Couture';
+            src: url('fonts/couture-bld.otf') format('opentype');
         }
-        h1 {
-            font-family: Helvetica, sans-serif;
+
+        /* Style for the logo text */
+        .logo-text {
+            font-family: 'Helvetica', Arial, sans-serif;
+            color: #90EE90;
+            font-size: 30px;
+            font-weight: bold;
         }
-        footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: black;
-            color: white;
-            text-align: center;
-            padding: 25px 0;
-            font-family: Helvetica, sans-serif;
-            font-size: 10px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
+
+        /* Style for the 'O' in Couture font */
+        .couture-o {
+            font-family: 'Couture', sans-serif;
         }
     </style>
 </head>
 <body>
-    <h1>HELLO, cooking something!</h1>
-    <footer>All rights reserved © 2025</footer>
+    <header>
+        <div class="logo">
+            <!-- Wrap 'O' in a span with class 'couture-o' -->
+            <span class="logo-text"><span class="couture-o">O</span>ff</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Women</a></li>
+                <li><a href="#">Men</a></li>
+                <li><a href="#">Kids</a></li>
+                <li><a href="#">Sale</a></li>
+            </ul>
+        </nav>
+    </header>
+    <section class="hero">
+        <h1>Welcome to Off</h1>
+        <p>Discover the latest fashion trends</p>
+        <a href="#">Shop Now</a>
+    </section>
+    <section class="categories">
+        <div class="category">
+            <img src="women.jpg" alt="Women's Fashion">
+            <h3>Women</h3>
+        </div>
+        <div class="category">
+            <img src="men.jpg" alt="Men's Fashion">
+            <h3>Men</h3>
+        </div>
+        <div class="category">
+            <img src="kids.jpg" alt="Kids' Fashion">
+            <h3>Kids</h3>
+        </div>
+    </section>
+    <footer>
+        <p>© 2025 Off. All rights reserved.</p>
+    </footer>
 </body>
 </html>
